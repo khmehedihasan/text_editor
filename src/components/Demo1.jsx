@@ -41,7 +41,7 @@ const RichTextExample = () => {
         return <li {...attributes}>{children}</li>
   
       case 'ol':
-        return <ol {...attributes}>{children}</ol>
+        return <li style={{listStyleType:'decimal'}} {...attributes}>{children}</li>
   
       default:
         return <p {...attributes}>{children}</p>
@@ -101,6 +101,41 @@ const RichTextExample = () => {
       )
     },
 
+    //----------------------------ul----------------------------------
+    isUl(editor) {
+      const [match] = Editor.nodes(editor, {
+        match: n => n.type === 'ul',
+      })
+  
+      return !!match
+    },
+    toggleUl(editor) {
+      const isActive = CustomEditor.isUl(editor)
+      Transforms.setNodes(
+        editor,
+        { type: isActive ? null : 'ul' },
+        { match: n => Editor.isBlock(editor, n) }
+      )
+    },
+
+    //----------------------------ol----------------------------------
+    isOl(editor) {
+      const [match] = Editor.nodes(editor, {
+        match: n => n.type === 'ol',
+      })
+  
+      return !!match
+    },
+    toggleOl(editor) {
+      const isActive = CustomEditor.isOl(editor)
+      Transforms.setNodes(
+        editor,
+        { type: isActive ? null : 'ol' },
+        { match: n => Editor.isBlock(editor, n) }
+      )
+    },
+    
+    
   }
 
 
@@ -134,6 +169,22 @@ const RichTextExample = () => {
           }}
         >
           H3
+        </button>
+        <button
+          onMouseDown={event => {
+            event.preventDefault()
+            CustomEditor.toggleUl(editor)
+          }}
+        >
+          <i class="fas fa-list-ul"></i>
+        </button>
+        <button
+          onMouseDown={event => {
+            event.preventDefault()
+            CustomEditor.toggleOl(editor)
+          }}
+        >
+         <i class="fas fa-list-ol"></i>
         </button>
       </Toolbar>
       <Editable
