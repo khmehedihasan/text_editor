@@ -2,15 +2,13 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Editable, withReact, useSlate, Slate } from 'slate-react';
 import {
   Editor,
-  Transforms,
   createEditor,
-  Element as SlateElement,
+  Transforms
 } from 'slate';
 
 
 import { Button, Toolbar } from './components';
 
-const LIST_TYPES = ['numbered-list', 'bulleted-list'];
 
 const RichTextExample = () => {
   const [value, setValue] = useState([{
@@ -18,9 +16,82 @@ const RichTextExample = () => {
     children: [{ text: 'A line of text in a paragraph.' }],
   },]);
 
+//----------------------------------Custom Element----------------------------------
+
+  const renderElement = useCallback(props => {
+    switch (props.element.type) {
+      case 'h1':
+        return <h1 {...props.attributes}> {props.children} </h1>
+
+      case 'h2':
+        return <h2 {...props.attributes}> {props.children} </h2>
+
+      case 'h3':
+        return <h3 {...props.attributes}> {props.children} </h3>
+
+      default:
+        return <p {...props.attributes}> {props.children} </p>
+    }
+  }, []);
+
+  const CustomEditor = {
+    //----------------------------h1----------------------------------
+    isH1(editor) {
+      const [match] = Editor.nodes(editor, {
+        match: n => n.type === 'h1',
+      })
+  
+      return !!match
+    },
+    toggleH1(editor) {
+      const isActive = CustomEditor.isH1(editor)
+      Transforms.setNodes(
+        editor,
+        { type: isActive ? null : 'h1' },
+        { match: n => Editor.isBlock(editor, n) }
+      )
+    },
+
+    //----------------------------h2----------------------------------
+    isH2(editor) {
+      const [match] = Editor.nodes(editor, {
+        match: n => n.type === 'h2',
+      })
+  
+      return !!match
+    },
+    toggleH2(editor) {
+      const isActive = CustomEditor.isH2(editor)
+      Transforms.setNodes(
+        editor,
+        { type: isActive ? null : 'h2' },
+        { match: n => Editor.isBlock(editor, n) }
+      )
+    },
 
 
-  const renderElement = useCallback(props => <Element {...props} />, [])
+    //----------------------------h3----------------------------------
+    isH3(editor) {
+      const [match] = Editor.nodes(editor, {
+        match: n => n.type === 'h3',
+      })
+  
+      return !!match
+    },
+    toggleH3(editor) {
+      const isActive = CustomEditor.isH3(editor)
+      Transforms.setNodes(
+        editor,
+        { type: isActive ? null : 'h3' },
+        { match: n => Editor.isBlock(editor, n) }
+      )
+    },
+
+  }
+
+
+
+
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
   const editor = useMemo(() => withReact(createEditor()), [])
 
@@ -30,6 +101,32 @@ const RichTextExample = () => {
         <MarkButton format="bold" icon={<i className="fas fa-bold"></i>} />
         <MarkButton format="italic" icon={<i className="fas fa-italic"></i>} />
         <MarkButton format="underline" icon={<i className="fas fa-underline"></i>} />
+      
+        <button
+          onMouseDown={event => {
+            event.preventDefault()
+            CustomEditor.toggleH1(editor)
+          }}
+        >
+          H1
+        </button>
+        <button
+          onMouseDown={event => {
+            event.preventDefault()
+            CustomEditor.toggleH2(editor)
+          }}
+        >
+          H2
+        </button>
+
+        <button
+          onMouseDown={event => {
+            event.preventDefault()
+            CustomEditor.toggleH3(editor)
+          }}
+        >
+          H3
+        </button>
       </Toolbar>
       <Editable
         renderElement={renderElement}
@@ -43,23 +140,6 @@ const RichTextExample = () => {
   )
 }
 
-const toggleBlock = (editor, format) => {
-  const isActive = isBlockActive(editor, format)
-  const isList = LIST_TYPES.includes(format)
-
-  Transforms.unwrapNodes(editor, {
-    match: n =>
-      !Editor.isEditor(n) &&
-      SlateElement.isElement(n) &&
-      LIST_TYPES.includes(n.type),
-    split: true,
-  })
-
-  if (!isActive && isList) {
-    const block = { type: format, children: [] }
-    Transforms.wrapNodes(editor, block)
-  }
-}
 
 const toggleMark = (editor, format) => {
   const isActive = isMarkActive(editor, format)
@@ -71,43 +151,10 @@ const toggleMark = (editor, format) => {
   }
 }
 
-const isBlockActive = (editor, format) => {
-  const { selection } = editor
-  if (!selection) return false
-
-  const [match] = Array.from(
-    Editor.nodes(editor, {
-      at: Editor.unhangRange(editor, selection),
-      match: n =>
-        !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
-    })
-  )
-
-  return !!match
-}
 
 const isMarkActive = (editor, format) => {
   const marks = Editor.marks(editor)
   return marks ? marks[format] === true : false
-}
-
-const Element = ({ attributes, children, element }) => {
-  switch (element.type) {
-    case 'block-quote':
-      return <blockquote {...attributes}>{children}</blockquote>
-    case 'bulleted-list':
-      return <ul {...attributes}>{children}</ul>
-    case 'heading-one':
-      return <h1 {...attributes}>{children}</h1>
-    case 'heading-two':
-      return <h2 {...attributes}>{children}</h2>
-    case 'list-item':
-      return <li {...attributes}>{children}</li>
-    case 'numbered-list':
-      return <ol {...attributes}>{children}</ol>
-    default:
-      return <p {...attributes}>{children}</p>
-  }
 }
 
 const Leaf = ({ attributes, children, leaf }) => {
