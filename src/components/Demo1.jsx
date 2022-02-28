@@ -2,8 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Editable, withReact, useSlate, Slate } from 'slate-react';
 import {
   Editor,
+  Transforms,
   createEditor,
-  Transforms
 } from 'slate';
 
 
@@ -16,23 +16,37 @@ const RichTextExample = () => {
     children: [{ text: 'A line of text in a paragraph.' }],
   },]);
 
-//----------------------------------Custom Element----------------------------------
 
-  const renderElement = useCallback(props => {
-    switch (props.element.type) {
+
+  const renderElement = useCallback(props => <Element {...props} />, [])
+  const renderLeaf = useCallback(props => <Leaf {...props} />, [])
+  const editor = useMemo(() => withReact(createEditor()), [])
+
+
+
+  //----------------------------------Custom Element----------------------------------
+
+  const Element = ({ attributes, children, element }) => {
+    switch (element.type) {
       case 'h1':
-        return <h1 {...props.attributes}> {props.children} </h1>
-
+        return <h1 {...attributes}>{children}</h1>
+  
       case 'h2':
-        return <h2 {...props.attributes}> {props.children} </h2>
-
+        return <h2 {...attributes}>{children}</h2>
+  
       case 'h3':
-        return <h3 {...props.attributes}> {props.children} </h3>
-
+        return <h3 {...attributes}>{children}</h3>
+  
+      case 'ul':
+        return <li {...attributes}>{children}</li>
+  
+      case 'ol':
+        return <ol {...attributes}>{children}</ol>
+  
       default:
-        return <p {...props.attributes}> {props.children} </p>
+        return <p {...attributes}>{children}</p>
     }
-  }, []);
+  }
 
   const CustomEditor = {
     //----------------------------h1----------------------------------
@@ -90,18 +104,12 @@ const RichTextExample = () => {
   }
 
 
-
-
-  const renderLeaf = useCallback(props => <Leaf {...props} />, [])
-  const editor = useMemo(() => withReact(createEditor()), [])
-
   return (
     <Slate editor={editor} value={value} onChange={value => setValue(value)}>
       <Toolbar>
         <MarkButton format="bold" icon={<i className="fas fa-bold"></i>} />
         <MarkButton format="italic" icon={<i className="fas fa-italic"></i>} />
         <MarkButton format="underline" icon={<i className="fas fa-underline"></i>} />
-      
         <button
           onMouseDown={event => {
             event.preventDefault()
@@ -156,6 +164,7 @@ const isMarkActive = (editor, format) => {
   const marks = Editor.marks(editor)
   return marks ? marks[format] === true : false
 }
+
 
 const Leaf = ({ attributes, children, leaf }) => {
   if (leaf.bold) {
