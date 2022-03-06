@@ -1,11 +1,16 @@
+import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import Demo1 from "./components/Demo1";
+import Admin from './pages/Admin';
+import User from './pages/User';
 
 function App() {
   return(
-    <div className='editor'>
-      <Demo1 />
-    </div>
+    <>
+    <Routes>
+      <Route path='/' element={<Admin />} />
+      <Route path='/user' element={<User />} />
+    </Routes>
+    </>
   )
 }
 

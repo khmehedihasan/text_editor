@@ -2,7 +2,7 @@
 
 .editor{
   max-width: 600px;
-  min-width: 400px;
+  min-width: 320px;
   margin: auto;
   margin-top: 60px;
   padding: 10px;
@@ -22,4 +22,43 @@
   box-shadow: inset -2px -2px 4px #e0e0e0,
   inset 3px 3px 4px #ffffff;
   padding-left: 10px;
+}
+
+.save{
+  border: none;
+  outline: none;
+  margin-top: 10px;
+  background-color: #ffd30e;
+  padding: 5px 20px;
+  border-radius: 3px;
+}
+
+.save:hover{
+  background-color: #dfb600;
+}
+
+.nav{
+  width: 100%;
+  background-color: #0079db;
+  padding-left: 30px;
+}
+
+.nav a{
+  display: inline-block;
+  padding: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  background-color: #0079db;
+  color: white;
+  margin-left: 2px;
+}
+
+.nav a:hover{
+  background-color: #ffd30e;
+  color: black;
+}
+
+.nav .active{
+  background-color: #ffd30e;
+  color: black;
 }

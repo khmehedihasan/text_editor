@@ -1,14 +1,16 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Editable, withReact, useSlate, Slate } from 'slate-react';
 import {
   Editor,
   Transforms,
   createEditor,
+  Element as SlateElement,
 } from 'slate';
 
 
 import { Button, Toolbar } from './components';
 
+const LIST_TYPES = ['numbered-list', 'bulleted-list'];
 
 const RichTextExample = () => {
   const [value, setValue] = useState([{
@@ -17,10 +19,18 @@ const RichTextExample = () => {
   },]);
 
 
-
   const renderElement = useCallback(props => <Element {...props} />, [])
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
   const editor = useMemo(() => withReact(createEditor()), [])
+  const [input, setInput] = useState();
+
+  useEffect(()=>{
+    setInput(document.getElementById('input').innerHTML);
+
+  },[value]);
+
+
+ 
 
 
 
@@ -42,7 +52,6 @@ const RichTextExample = () => {
   
       case 'ol':
         return <li style={{listStyleType:'decimal'}} {...attributes}>{children}</li>
-  
       default:
         return <p {...attributes}>{children}</p>
     }
@@ -101,6 +110,7 @@ const RichTextExample = () => {
       )
     },
 
+
     //----------------------------ul----------------------------------
     isUl(editor) {
       const [match] = Editor.nodes(editor, {
@@ -133,14 +143,20 @@ const RichTextExample = () => {
         { type: isActive ? null : 'ol' },
         { match: n => Editor.isBlock(editor, n) }
       )
-    },
-    
-    
+        },
+
+
+
+  }
+
+  
+  function save(){
+    console.log('save')
   }
 
 
   return (
-    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+    <Slate editor={editor} value={value} onChange={(value) =>{ setValue(value);}}>
       <Toolbar>
         <MarkButton format="bold" icon={<i className="fas fa-bold"></i>} />
         <MarkButton format="italic" icon={<i className="fas fa-italic"></i>} />
@@ -176,7 +192,7 @@ const RichTextExample = () => {
             CustomEditor.toggleUl(editor)
           }}
         >
-          <i class="fas fa-list-ul"></i>
+          <i className="fas fa-list-ul"></i>
         </button>
         <button
           onMouseDown={event => {
@@ -184,7 +200,7 @@ const RichTextExample = () => {
             CustomEditor.toggleOl(editor)
           }}
         >
-         <i class="fas fa-list-ol"></i>
+         <i className="fas fa-list-ol"></i>
         </button>
       </Toolbar>
       <Editable
@@ -193,12 +209,33 @@ const RichTextExample = () => {
         placeholder="Enter some rich text…"
         spellCheck
         autoFocus
+        id='input'
         
       />
+      {
+        <button className='save' onClick={()=>save()}>Save</button>
+      }
     </Slate>
   )
 }
 
+const toggleBlock = (editor, format) => {
+  const isActive = isBlockActive(editor, format)
+  const isList = LIST_TYPES.includes(format)
+
+  Transforms.unwrapNodes(editor, {
+    match: n =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      LIST_TYPES.includes(n.type),
+    split: true,
+  })
+
+  if (!isActive && isList) {
+    const block = { type: format, children: [] }
+    Transforms.wrapNodes(editor, block)
+  }
+}
 
 const toggleMark = (editor, format) => {
   const isActive = isMarkActive(editor, format)
@@ -210,6 +247,20 @@ const toggleMark = (editor, format) => {
   }
 }
 
+const isBlockActive = (editor, format) => {
+  const { selection } = editor
+  if (!selection) return false
+
+  const [match] = Array.from(
+    Editor.nodes(editor, {
+      at: Editor.unhangRange(editor, selection),
+      match: n =>
+        !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
+    })
+  )
+
+  return !!match
+}
 
 const isMarkActive = (editor, format) => {
   const marks = Editor.marks(editor)
