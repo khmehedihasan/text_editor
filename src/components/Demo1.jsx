@@ -9,6 +9,7 @@ import {
 
 
 import { Button, Toolbar } from './components';
+import { useNavigate  } from 'react-router-dom';
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list'];
 
@@ -29,8 +30,6 @@ const RichTextExample = () => {
 
   },[value]);
 
-
- 
 
 
 
@@ -149,9 +148,21 @@ const RichTextExample = () => {
 
   }
 
+  const navigate = useNavigate();
   
   function save(){
-    console.log('save')
+    fetch('https://text1-api.herokuapp.com/text',{
+      method:'POST',
+      body:JSON.stringify({input})
+    }).then((data)=>data.json()).then((data)=>  navigate('/user'));
+
+    setValue([{
+      type: 'paragraph',
+      children: [{ text: 'A line of text in a paragraph.' }],
+    },]);
+
+    navigate('/user');
+
   }
 
 

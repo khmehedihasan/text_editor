@@ -62,3 +62,12 @@
   background-color: #ffd30e;
   color: black;
 }
+
+.containersShow{
+
+}
+.show{
+  background-color: #d4d4d4;
+  padding: 10px;
+  margin: 10px;
+}
